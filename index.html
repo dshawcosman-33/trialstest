@@ -1,0 +1,81 @@
+<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 20px auto; padding: 20px; border: 2px solid #1d9a8f; border-radius: 12px; text-align: center;">
+  <h2 style="margin-top: 0; color: #1d9a8f;">Storage Test</h2>
+
+  <p style="font-size: 16px; margin-bottom: 4px;">Saved number from last time:</p>
+  <p id="savedNumber" style="font-size: 48px; font-weight: bold; margin: 8px 0; color: #e8624f;">...</p>
+  <p id="savedTime" style="font-size: 14px; color: #555; margin-top: 0;"></p>
+
+  <button id="saveBtn" style="font-size: 18px; padding: 12px 24px; background: #1d9a8f; color: white; border: none; border-radius: 8px; cursor: pointer;">
+    Generate and save a random number
+  </button>
+
+  <p id="message" style="font-size: 16px; min-height: 24px; margin-top: 16px;"></p>
+
+  <hr style="margin: 20px 0;">
+  <p style="font-size: 13px; color: #555; margin: 4px 0;">Diagnostics</p>
+  <p id="diag" style="font-size: 13px; color: #333; margin: 4px 0;"></p>
+</div>
+
+<script>
+(function () {
+  var KEY_NUM = "trialsTestNumber";
+  var KEY_TIME = "trialsTestTime";
+  var numEl = document.getElementById("savedNumber");
+  var timeEl = document.getElementById("savedTime");
+  var msgEl = document.getElementById("message");
+  var diagEl = document.getElementById("diag");
+
+  function storageWorks() {
+    try {
+      localStorage.setItem("trialsProbe", "1");
+      var ok = localStorage.getItem("trialsProbe") === "1";
+      localStorage.removeItem("trialsProbe");
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var works = storageWorks();
+  diagEl.textContent = "Browser storage: " + (works ? "available" : "BLOCKED");
+
+  function show() {
+    if (!works) {
+      numEl.textContent = "n/a";
+      timeEl.textContent = "";
+      msgEl.textContent = "Storage is blocked in this frame, so saving will not work.";
+      return;
+    }
+    var n = null, t = null;
+    try {
+      n = localStorage.getItem(KEY_NUM);
+      t = localStorage.getItem(KEY_TIME);
+    } catch (e) {}
+    if (n === null) {
+      numEl.textContent = "none yet";
+      timeEl.textContent = "";
+    } else {
+      numEl.textContent = n;
+      timeEl.textContent = "Saved at: " + t;
+    }
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", function () {
+    if (!works) {
+      msgEl.textContent = "Storage is blocked, so nothing was saved.";
+      return;
+    }
+    var num = Math.floor(Math.random() * 9000) + 1000;
+    try {
+      localStorage.setItem(KEY_NUM, String(num));
+      localStorage.setItem(KEY_TIME, new Date().toLocaleString());
+      msgEl.textContent = "Saved " + num + ". Now close the browser completely, reopen this page, and see if the number is still here.";
+      show();
+    } catch (e) {
+      msgEl.textContent = "Saving failed: " + e.message;
+    }
+  });
+
+  show();
+})();
+</script>
